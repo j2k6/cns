@@ -1,3 +1,9 @@
+apply plugin: 'application'
+
+mainClassName = "org.cns.server.Bootstrap"
+
 dependencies {
 	compile project(':cns-api')
 }
+
+
