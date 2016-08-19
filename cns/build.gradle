@@ -41,6 +41,9 @@ subprojects {
 	
 //		compile 'org.apache.xmlbeans:xmlbeans:2.6.0'
 		
+		testCompile 'junit:junit:4.12'
+		testCompile "org.mockito:mockito-core:2.+"
+		
 	}
 }
 
