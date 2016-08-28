@@ -3,12 +3,7 @@ package org.cns.server;
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
-import java.util.Map;
 import java.util.Queue;
-
-import org.cns.api.server.ChatCommand;
-import org.cns.model.ChatMessage;
-import org.cns.model.command.CommandInput;
 
 /**
  * Логика обработки состояния канала
@@ -31,18 +26,23 @@ public class ChannelStateProcessor {
      * @param state
      * @throws IOException
      */
-    public int processIncomingMessages(ChannelState state) throws IOException {
+    public int processIncomingMessages(ChannelState state, MessageProcessingConveyor messageProcessingConveyor) throws IOException {
         SocketChannel channel = state.getChannel();
         InBufferProcessor inBuffProcessor = state.getInBufferProcessor();
+        Queue<String> inMsgs = state.getInMessages();
+        
         int bytesRead = channel.read(inBuffProcessor.getBuffer());
         if (bytesRead == -1) {
             channel.close();
         } else if (bytesRead > 0) {
-            inBuffProcessor.processBuffer(bytesRead, state.getInMessages());
+            inBuffProcessor.processBuffer(bytesRead, inMsgs);
             // в результате обработки входящих данных канала получили как минимум одно сообщение - обрабатываем его
-            // через процессор команд
+            // через процессор сообщений
             if (inBuffProcessor.isReady()) {
-                processCommands(state);
+                String rawMsg = null;
+                while ((rawMsg = inMsgs.poll()) != null) {
+                    messageProcessingConveyor.processMessages(rawMsg, state);
+                }
             }
             return SelectionKey.OP_READ | SelectionKey.OP_WRITE;
         }
@@ -82,59 +82,6 @@ public class ChannelStateProcessor {
         }
 
         return res;
-    }
-
-    /**
-     * Обработчик очереди входящих сообщений - каждое сообщение проверяется на наличие команды.
-     * <p>
-     * Если команды не было обнаружено - сообщение считается обычным и кладется в очередь общих исходящих сообщений
-     * <p>
-     * Выполняется дополнительная проверка регистрации пользователя - в случае если пользователь не был зарегистрирован
-     * под незанятым ником - ему выдается соответствующее сообщение.
-     * 
-     * @param chatMsg
-     */
-    public void processCommands(ChannelState state) {
-        Queue<String> inMsgs = state.getInMessages();
-        Queue<String> outMsgs = state.getOutMessages();
-        Queue<String> broadcastMsgs = state.getBroadcastMessages();
-        Queue<String> lastMsgs = state.getServerInfo().getLastMessages();
-
-        Map<String, ChatCommand> commands = state.getServerInfo().getCommands();
-
-        String rawMsg = null;
-        while ((rawMsg = inMsgs.poll()) != null) {
-
-            // проверка и обработка регистрации пользователя
-            if (state.getNickname() == null) {
-                if (rawMsg.startsWith("#nick")) {
-                    CommandInput input = new CommandInput(rawMsg, state);
-                    commands.get("#nick").execute(input);
-                } else {
-                    outMsgs.add("You have to register your nickname with #nick command. Type #quit to quit.");
-                }
-            } else {
-                // пользователь зарегистрирован - обрабатываем его возможные команды
-                if (rawMsg.startsWith("#")) {
-
-                    for (ChatCommand cmd : commands.values()) {
-                        if (rawMsg.startsWith(cmd.getName())) {
-                            CommandInput input = new CommandInput(rawMsg, state);
-                            cmd.execute(input);
-                            break;
-                        }
-                    }
-
-                } else {
-                    // общее сообщение - добавляем к последним общим сообщения для новых пользователей и в очередь для
-                    // широковещательной рассылки уже подключенным
-                    ChatMessage chatMessage = new ChatMessage(state.getNickname(), rawMsg);
-                    String msg = chatMessage.toString();
-                    lastMsgs.add(msg);
-                    broadcastMsgs.add(msg);
-                }
-            }
-        }
     }
 
 }

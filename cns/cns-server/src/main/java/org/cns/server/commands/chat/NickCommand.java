@@ -1,4 +1,4 @@
-package org.cns.server.commands;
+package org.cns.server.commands.chat;
 
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -6,15 +6,16 @@ import java.nio.channels.SocketChannel;
 import java.util.Queue;
 
 import org.cns.api.server.ChannelInfo;
-import org.cns.api.server.ChatCommand;
 import org.cns.api.server.ServerInfo;
+import org.cns.api.server.commands.ChatCommand;
 import org.cns.model.command.CommandInput;
+import org.cns.model.command.ProcessingResult;
 import org.cns.server.ChannelState;
 
 /**
  * Регистрация или смена ника. Команда выполняет проверку уникальности ника.
  * 
- * @author ivanovd
+ * @author johnson
  *
  */
 public class NickCommand implements ChatCommand {
@@ -35,8 +36,9 @@ public class NickCommand implements ChatCommand {
     }
 
     @Override
-    public void execute(CommandInput input) {
+    public ProcessingResult execute(CommandInput input) {
         boolean changeAccepted = true;
+        
         ChannelInfo ci = input.getChannelInfo();
         ServerInfo srvInfo = ci.getServerInfo();
 
@@ -65,6 +67,8 @@ public class NickCommand implements ChatCommand {
         } else {
             ci.getOutMessages().add("Nickname rejected - try to choose another nickname.");
         }
+
+        return ProcessingResult.NEXT;
     }
 
 }

@@ -6,7 +6,7 @@ import java.util.Queue;
 /**
  * Процессинг сообщений в буфер для исходящих сообщений 
  * 
- * @author ivanovd
+ * @author johnson
  *
  */
 public class OutBufferProcessor {

@@ -1,6 +1,4 @@
-package org.cns.api.server;
-
-import org.cns.model.command.CommandInput;
+package org.cns.api.server.commands;
 
 /**
  * Интерфейс для реализации команд чата
@@ -8,14 +6,7 @@ import org.cns.model.command.CommandInput;
  * @author johnson
  *
  */
-public interface ChatCommand {
-
-    /**
-     * Возвращат имя команды. Например #nick
-     * 
-     * @return
-     */
-    public String getName();
+public interface ChatCommand extends Command {
 
     /**
      * Возвращает текстовое описание команды
@@ -31,12 +22,5 @@ public interface ChatCommand {
      * @return
      */
     public boolean isPublic();
-
-    /**
-     * Выполнение команды с указанными параметрами.
-     * 
-     * @param input
-     */
-    public void execute(CommandInput input);
 
 }

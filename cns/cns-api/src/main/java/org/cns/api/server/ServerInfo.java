@@ -1,7 +1,6 @@
 package org.cns.api.server;
 
 import java.nio.channels.Selector;
-import java.util.Map;
 import java.util.Queue;
 
 /**
@@ -23,13 +22,6 @@ public interface ServerInfo {
      * @return селектор доступных каналов, обслуживаемых чат-сервером
      */
     public Selector getSelector();
-
-    /**
-     * Возвращает перечень команд, зарегистрированных на сервере.
-     * 
-     * @return перечень команд, зарегистрированных на сервере.
-     */
-    public Map<String, ChatCommand> getCommands();
 
     /**
      * Возвращает последние доступные сообщения.

@@ -5,11 +5,11 @@ tmp/
 *.tmp
 *.bak
 *.swp
+*.log
 *~.nib
 **/local.properties
 
 **/.gradle/
-**/build.gradle
 **/gradle.prefs
 
 .loadpath
@@ -47,3 +47,4 @@ tmp/
 
 # Code Recommenders
 .recommenders/
+

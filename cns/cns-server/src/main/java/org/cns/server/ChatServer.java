@@ -6,23 +6,19 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Queue;
 
 import org.apache.log4j.Logger;
-import org.cns.api.server.ChatCommand;
 import org.cns.api.server.ServerInfo;
-import org.cns.server.commands.CountUsersCommand;
-import org.cns.server.commands.HelpCommand;
-import org.cns.server.commands.NickCommand;
+import org.cns.model.ServerType;
+import org.cns.server.commands.ChatCommandProcessor;
+import org.cns.server.commands.HttpCommandProcessor;
 
 import com.google.common.collect.EvictingQueue;
 
 /**
- * Чат-сервер с основынм бесконечным циклом работы.
+ * Чат-сервер с основным бесконечным циклом работы.
  * 
  * @author johnson
  *
@@ -38,43 +34,39 @@ public class ChatServer implements Runnable {
     // обработчик состояний каналов
     private ChannelStateProcessor stateProcessor;
 
-    // зарегистрированные команды сервера
-    private Map<String, ChatCommand> commands;
+    // конвейер по которому запускаются полученные сообщения на обработку
+    private MessageProcessingConveyor messageProcessingConveyor;
 
     // очередь для последние сообщения
     private Queue<String> lastMessages;
 
-    private ServerInfo info;
+    private ServerInfo serverInfo;
 
-    public ChatServer(String host, int port) throws IOException {
+    public ChatServer(String host, int port, ServerType type) throws IOException {
         this.selector = Selector.open();
         this.serverSocketChanel = ServerSocketChannel.open();
         this.serverSocketChanel.socket().bind(new InetSocketAddress(host, port));
         this.serverSocketChanel.configureBlocking(false);
         this.serverSocketChanel.register(selector, SelectionKey.OP_ACCEPT);
 
+        // TODO: можно вынести инициализацию конвейера вовне, чтобы отвязать классы
+        // проверяем тип сервера - если HTTP - то добавляем к конвейеру обработчик HTTP-протокола
+        this.messageProcessingConveyor = new MessageProcessingConveyor();
+        if (type.equals(ServerType.HTTP)) {
+            this.messageProcessingConveyor.addProcessor(new HttpCommandProcessor());
+        }
+        // по умолчанию всегда добавляем обработчик команд чата
+        this.messageProcessingConveyor.addProcessor(new ChatCommandProcessor());
+
         this.stateProcessor = new ChannelStateProcessor();
-
-        this.commands = new HashMap<String, ChatCommand>();
-
-        this.commands.put("#help", new HelpCommand());
-        this.commands.put("#nick", new NickCommand());
-        this.commands.put("#count", new CountUsersCommand());
 
         this.lastMessages = EvictingQueue.create(100);
 
-        this.info = new ServerInfo() {
-
-            private Map<String, ChatCommand> readOnlyCommands = Collections.unmodifiableMap(commands);
+        this.serverInfo = new ServerInfo() {
 
             @Override
             public Selector getSelector() {
                 return selector;
-            }
-
-            @Override
-            public Map<String, ChatCommand> getCommands() {
-                return readOnlyCommands;
             }
 
             @Override
@@ -136,7 +128,7 @@ public class ChatServer implements Runnable {
     private void handleAccept(SelectionKey key) throws IOException {
         SocketChannel channel = ((ServerSocketChannel) key.channel()).accept();
         channel.configureBlocking(false);
-        channel.register(key.selector(), SelectionKey.OP_READ, new ChannelState(channel, 20, info));
+        channel.register(key.selector(), SelectionKey.OP_READ, new ChannelState(channel, 20, serverInfo));
 
         InetSocketAddress addr = (InetSocketAddress) channel.getRemoteAddress();
         logger.info(String.format("Accepting new connection: ip: %s, remote port: %s",
@@ -152,7 +144,7 @@ public class ChatServer implements Runnable {
     private void handleRead(SelectionKey key) {
         try {
             ChannelState state = (ChannelState) key.attachment();
-            int interestedOps = stateProcessor.processIncomingMessages(state);
+            int interestedOps = stateProcessor.processIncomingMessages(state, messageProcessingConveyor);
             if (interestedOps > 0)
                 key.interestOps(interestedOps);
         } catch (Exception e) {

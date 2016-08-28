@@ -9,7 +9,7 @@ import org.cns.api.server.ServerInfo;
  * Класс для сборки сообщения из буфера. Опирается на маркер конца сообщения - проверяет наличие его в новой порции
  * данных и выставляет флаг готовности.
  * 
- * @author ivanovd
+ * @author johnson
  *
  */
 public class InBufferProcessor {

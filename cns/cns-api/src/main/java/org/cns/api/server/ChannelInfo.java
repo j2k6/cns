@@ -33,6 +33,13 @@ public interface ChannelInfo {
     public Queue<String> getOutMessages();
 
     /**
+     * Возвращает очередь широковещательных сообщений от канала
+     * 
+     * @return
+     */
+    public Queue<String> getBroadcastMessages();
+    
+    /**
      * Возвращает никнейм пользователя, оссоциированный с состоянием
      * 
      * @return никнейм пользователя, оссоциированный с состоянием

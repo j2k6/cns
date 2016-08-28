@@ -1,10 +1,12 @@
-package org.cns.server.commands;
+package org.cns.server.commands.chat;
+
+import java.util.Collection;
 
 import org.cns.api.server.ChannelInfo;
-import org.cns.api.server.ChatCommand;
-import org.cns.api.server.ServerInfo;
+import org.cns.api.server.commands.ChatCommand;
 import org.cns.model.ChatMessage;
 import org.cns.model.command.CommandInput;
+import org.cns.model.command.ProcessingResult;
 
 /**
  * Команда получения помощи по зарегистрированным на сервере командам
@@ -12,7 +14,7 @@ import org.cns.model.command.CommandInput;
  * @author johnson
  *
  */
-public class HelpCommand implements ChatCommand {
+public abstract class HelpCommand implements ChatCommand {
 
     @Override
     public String getName() {
@@ -30,18 +32,20 @@ public class HelpCommand implements ChatCommand {
     }
 
     @Override
-    public void execute(CommandInput input) {
-        ChannelInfo ci = input.getChannelInfo();
-        ServerInfo srvInfo = ci.getServerInfo();
+    public ProcessingResult execute(CommandInput input) {
+        ChannelInfo channelInfo = input.getChannelInfo();
 
         StringBuffer buf = new StringBuffer("Availiable commands:\r\n");
-        for (ChatCommand command : srvInfo.getCommands().values()) {
+        for (ChatCommand command : getAvailiableCommands()) {
             buf.append(String.format("Command: %s, desc: %s \r\n", command.getName(), command.getDescription()));
         }
 
         ChatMessage msg = new ChatMessage(input.getChannelInfo().getNickname(), buf.toString());
+        channelInfo.getOutMessages().add(msg.toString());
 
-        input.getChannelInfo().getOutMessages().add(msg.toString());
+        return ProcessingResult.NEXT;
     }
+
+    protected abstract Collection<ChatCommand> getAvailiableCommands();
 
 }

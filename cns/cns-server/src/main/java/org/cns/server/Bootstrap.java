@@ -8,6 +8,8 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.log4j.Logger;
 import org.cns.model.ServerType;
+import org.cns.server.commands.ChatCommandProcessor;
+import org.cns.server.commands.HttpCommandProcessor;
 
 /**
  * Инициализация сервера
@@ -81,7 +83,7 @@ public class Bootstrap {
         try {
             logger.info("Trying to initilize chat server...");
 
-            ChatServer chatServer = new ChatServer(host, port);
+            ChatServer chatServer = new ChatServer(host, port, type);
             chatServer.start();
 
             logger.info("Chat server initialized.");

@@ -1,13 +1,14 @@
-package org.cns.server.commands;
+package org.cns.server.commands.chat;
 
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 
-import org.cns.api.server.ChatCommand;
 import org.cns.api.server.ServerInfo;
+import org.cns.api.server.commands.ChatCommand;
 import org.cns.model.ChatMessage;
 import org.cns.model.command.CommandInput;
+import org.cns.model.command.ProcessingResult;
 
 /**
  * Команда подсчета кол-ва подсоединеных к серверу пользователей.
@@ -33,7 +34,7 @@ public class CountUsersCommand implements ChatCommand {
     }
 
     @Override
-    public void execute(CommandInput input) {
+    public ProcessingResult execute(CommandInput input) {
         try {
             ServerInfo srvInfo = input.getChannelInfo().getServerInfo();
             Selector selector = srvInfo.getSelector();
@@ -50,6 +51,8 @@ public class CountUsersCommand implements ChatCommand {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        
+        return ProcessingResult.NEXT;
     }
 
 }
