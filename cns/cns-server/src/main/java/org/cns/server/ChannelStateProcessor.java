@@ -5,6 +5,8 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.Queue;
 
+import org.cns.api.server.MessageReader;
+
 /**
  * Логика обработки состояния канала
  * 
@@ -26,19 +28,20 @@ public class ChannelStateProcessor {
      * @param state
      * @throws IOException
      */
-    public int processIncomingMessages(ChannelState state, MessageProcessingConveyor messageProcessingConveyor) throws IOException {
+    public int processIncomingMessages(ChannelState state, MessageProcessingConveyor messageProcessingConveyor)
+            throws IOException {
         SocketChannel channel = state.getChannel();
-        InBufferProcessor inBuffProcessor = state.getInBufferProcessor();
+        MessageReader reader = state.getMessageReader();
         Queue<String> inMsgs = state.getInMessages();
-        
-        int bytesRead = channel.read(inBuffProcessor.getBuffer());
+
+        int bytesRead = channel.read(reader.getBuffer());
         if (bytesRead == -1) {
             channel.close();
         } else if (bytesRead > 0) {
-            inBuffProcessor.processBuffer(bytesRead, inMsgs);
+            reader.processBuffer(bytesRead, inMsgs);
             // в результате обработки входящих данных канала получили как минимум одно сообщение - обрабатываем его
             // через процессор сообщений
-            if (inBuffProcessor.isReady()) {
+            if (reader.isMessageReady()) {
                 String rawMsg = null;
                 while ((rawMsg = inMsgs.poll()) != null) {
                     messageProcessingConveyor.processMessages(rawMsg, state);

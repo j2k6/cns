@@ -5,8 +5,6 @@ import java.util.Map;
 
 import org.cns.api.server.commands.Command;
 import org.cns.api.server.commands.CommandProcessor;
-import org.cns.model.command.CommandInput;
-import org.cns.model.command.ProcessingResult;
 
 /**
  * Базовый класс командного процессора
@@ -27,12 +25,6 @@ public abstract class AbstractCommandProcessor<T extends Command> implements Com
     @Override
     public Map<String, T> getCommands() {
         return Collections.unmodifiableMap(commands);
-    }
-
-    @Override
-    public ProcessingResult processCommand(CommandInput input) {
-        // TODO Auto-generated method stub
-        return null;
     }
 
     public void addCommand(T command) {

@@ -6,6 +6,7 @@ import org.cns.model.command.ProcessingResult;
 
 /**
  * GET-запрос
+ * 
  * @author johnson
  *
  */
@@ -18,7 +19,10 @@ public class GetCommand implements HttpCommand {
 
     @Override
     public ProcessingResult execute(CommandInput input) {
-        return null;
+        // делаем что-то с телом запроса - строго говоря у ГЕТ-запроса нет тела, надо разбирать URI
+        String rawMsg = input.getMsg();
+
+        return ProcessingResult.NEXT;
     }
 
     @Override

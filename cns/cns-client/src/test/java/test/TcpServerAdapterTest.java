@@ -15,7 +15,6 @@ import java.io.Writer;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-import org.cns.api.server.ServerInfo;
 import org.cns.client.TcpServerAdapter;
 import org.junit.After;
 import org.junit.Before;

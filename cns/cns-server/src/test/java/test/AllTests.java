@@ -5,7 +5,7 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({TcpServerAdapterTest.class})
+@SuiteClasses({NickCommandTest.class, HelpCommandTest.class, CountUsersCommandTest.class, ChatCommandProcessorTest.class})
 public class AllTests {
 
 }

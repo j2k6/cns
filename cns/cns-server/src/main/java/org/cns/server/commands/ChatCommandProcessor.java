@@ -89,8 +89,8 @@ public class ChatCommandProcessor extends AbstractCommandProcessor<ChatCommand> 
     }
 
     /**
-     * Возвращает команду в начале строки, если она там есть, иначе null. Команда начинается на #, после команды д.б.
-     * пробел.
+     * Возвращает команду в начале строки, если она там есть, иначе null. Команда начинается на #, если команды с
+     * параметрами - после команды д.б. пробел.
      *
      * @param message
      * @return
@@ -101,7 +101,8 @@ public class ChatCommandProcessor extends AbstractCommandProcessor<ChatCommand> 
             int cmdEnd = message.indexOf(' ');
             if (cmdEnd > 1) {
                 commandToCheck = message.substring(0, cmdEnd);
-            }
+            } else
+                commandToCheck = message.substring(0);
         }
         return commandToCheck;
     }

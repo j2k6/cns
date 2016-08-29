@@ -8,13 +8,19 @@ public class PostCommand implements HttpCommand {
 
     @Override
     public String getName() {
-        return null;
+        return "POST";
     }
 
     @Override
     public ProcessingResult execute(CommandInput input) {
-        // TODO Auto-generated method stub
-        return null;
+        // достаем тело запроса
+        String rawMsg = input.getMsg();
+        int delimiterIdx = rawMsg.indexOf("\r\n\r\n");
+        String body = rawMsg.substring(delimiterIdx + 4);
+
+        input.setMsg(body);
+
+        return ProcessingResult.NEXT;
     }
 
     @Override

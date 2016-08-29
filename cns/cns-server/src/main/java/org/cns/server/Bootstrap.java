@@ -44,8 +44,8 @@ public class Bootstrap {
         logger.info("Command line parameters parsed...");
 
         type = ServerType.valueOf(cmd.getOptionValue("t"));
-        if (!type.equals(ServerType.TCP)) {
-            logger.error("Only TCP server type supported for now.");
+        if (!(type.equals(ServerType.TCP) || type.equals(ServerType.HTTP))) {
+            logger.error("Not supported server type.");
             System.exit(-1);
         }
 

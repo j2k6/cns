@@ -35,6 +35,10 @@ public class CommandInput {
         return msg;
     }
 
+    public void setMsg(String msg) {
+        this.msg = msg;
+    }
+
     public ChannelInfo getChannelInfo() {
         return channelInfo;
     }

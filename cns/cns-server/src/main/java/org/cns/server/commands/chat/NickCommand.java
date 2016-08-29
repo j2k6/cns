@@ -10,7 +10,6 @@ import org.cns.api.server.ServerInfo;
 import org.cns.api.server.commands.ChatCommand;
 import org.cns.model.command.CommandInput;
 import org.cns.model.command.ProcessingResult;
-import org.cns.server.ChannelState;
 
 /**
  * Регистрация или смена ника. Команда выполняет проверку уникальности ника.
@@ -50,7 +49,7 @@ public class NickCommand implements ChatCommand {
             Selector selector = srvInfo.getSelector();
             for (SelectionKey targetKey : selector.keys()) {
                 if (targetKey.isValid() && targetKey.channel() instanceof SocketChannel) {
-                    ChannelState targetState = (ChannelState) targetKey.attachment();
+                    ChannelInfo targetState = (ChannelInfo) targetKey.attachment();
                     if (nick.equals(targetState.getNickname()))
                         changeAccepted = false;
                 }

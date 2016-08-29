@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.Queue;
 
 import org.apache.log4j.Logger;
+import org.cns.api.server.ChannelInfo;
 import org.cns.api.server.ServerInfo;
 import org.cns.model.ServerType;
 import org.cns.server.commands.ChatCommandProcessor;
@@ -37,6 +38,8 @@ public class ChatServer implements Runnable {
     // конвейер по которому запускаются полученные сообщения на обработку
     private MessageProcessingConveyor messageProcessingConveyor;
 
+    private MessageReaderFactory messageReaderfactory;
+
     // очередь для последние сообщения
     private Queue<String> lastMessages;
 
@@ -57,6 +60,8 @@ public class ChatServer implements Runnable {
         }
         // по умолчанию всегда добавляем обработчик команд чата
         this.messageProcessingConveyor.addProcessor(new ChatCommandProcessor());
+
+        this.messageReaderfactory = new MessageReaderFactory(type);
 
         this.stateProcessor = new ChannelStateProcessor();
 
@@ -128,7 +133,8 @@ public class ChatServer implements Runnable {
     private void handleAccept(SelectionKey key) throws IOException {
         SocketChannel channel = ((ServerSocketChannel) key.channel()).accept();
         channel.configureBlocking(false);
-        channel.register(key.selector(), SelectionKey.OP_READ, new ChannelState(channel, 20, serverInfo));
+        channel.register(key.selector(), SelectionKey.OP_READ,
+                new ChannelState(channel, messageReaderfactory.create(20), serverInfo));
 
         InetSocketAddress addr = (InetSocketAddress) channel.getRemoteAddress();
         logger.info(String.format("Accepting new connection: ip: %s, remote port: %s",
@@ -164,7 +170,6 @@ public class ChatServer implements Runnable {
             ChannelState state = (ChannelState) key.attachment();
             int interestedOps = stateProcessor.processOutgoingMessages(state);
             if (interestedOps > 0)
-                // key.interestOps(interestedOps);
                 key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
         } catch (Exception e) {
             logger.error("Error writing channel - connection lost? Closing client channel.", e);
@@ -180,7 +185,7 @@ public class ChatServer implements Runnable {
      */
     public void handleBroadcast(SelectionKey key) throws IOException {
         try {
-            ChannelState state = (ChannelState) key.attachment();
+            ChannelInfo state = (ChannelInfo) key.attachment();
             if (state != null) {
                 Queue<String> broadcastMsgs = state.getBroadcastMessages();
                 if (broadcastMsgs.size() > 0) {
@@ -188,7 +193,7 @@ public class ChatServer implements Runnable {
                     for (SelectionKey targetKey : selector.keys()) {
                         if (!targetKey.equals(key)) { // себе не пересылаем сообщение
                             if (targetKey.isValid() && targetKey.channel() instanceof SocketChannel) {
-                                ChannelState targetState = (ChannelState) targetKey.attachment();
+                                ChannelInfo targetState = (ChannelInfo) targetKey.attachment();
                                 targetState.getOutMessages().add(msg);
                                 targetKey.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
                             }

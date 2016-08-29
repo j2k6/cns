@@ -5,6 +5,7 @@ import java.util.ArrayDeque;
 import java.util.Queue;
 
 import org.cns.api.server.ChannelInfo;
+import org.cns.api.server.MessageReader;
 import org.cns.api.server.ServerInfo;
 
 /**
@@ -34,23 +35,23 @@ public class ChannelState implements ChannelInfo {
     private Queue<String> broadcastMessages;
 
     // обработчик буфера для входящих сообщений
-    private InBufferProcessor inBufferProcessor;
+    private MessageReader reader;
 
     // обработчик буфера для исходящих сообщений
     private OutBufferProcessor outBufferProcessor;
 
-    public ChannelState(SocketChannel channel, int bufSize, ServerInfo info) {
+    public ChannelState(SocketChannel channel, MessageReader reader, ServerInfo info) {
         this.channel = channel;
         this.inMessages = new ArrayDeque<String>();
         this.outMessages = new ArrayDeque<String>();
         this.broadcastMessages = new ArrayDeque<String>();
-        this.inBufferProcessor = new InBufferProcessor(bufSize);
+        this.reader = reader;
         this.outBufferProcessor = new OutBufferProcessor();
         this.serverInfo = info;
     }
 
-    public InBufferProcessor getInBufferProcessor() {
-        return inBufferProcessor;
+    public MessageReader getMessageReader() {
+        return reader;
     }
 
     public OutBufferProcessor getOutBufferState() {
